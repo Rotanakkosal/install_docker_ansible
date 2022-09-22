@@ -1,0 +1,46 @@
+---
+- hosts: all
+  tasks: 
+
+  - name: Create Network
+    community.docker.docker_network:
+      name: wordpress
+  
+  - name: Create Volume
+    community.docker.docker_volume:
+      name: my-vol
+
+  - name: Deploy wordpress
+    community.docker.docker_container:
+      name: wordpress
+      image: wordpress:latest
+      ports: 
+        - "80:80"
+      links:
+        - "my-vol:/var/lib/mysq"
+      networks:
+        - wordpress
+      env:
+        WORDPRESS_DB_HOST: "db"
+        WORDPRESS_DB_USER: "kosal"
+        WORDPRESS_DB_PASSWORD: "123"
+        WORDPRESS_DB_NAME: "devops"
+      restart_policy: always
+
+  - name: Deploy MySQL
+    community.docker.docker_container:
+      name: mysql
+      image: mysql
+      ports:
+        - "3306:3306"
+      networks:
+        - wordpress
+      volumes:
+        - "my-vol:/var/lib/mysql"
+      env:
+        MYSQL_ROOT_PASSWORD: "123"
+        MYSQL_USER: "kosal"
+        MYSQL_PASSWORD: "123"
+        MYSQL_DATABASE: "devops"
+      restart_policy: always
+
